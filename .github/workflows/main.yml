@@ -2,9 +2,8 @@ name: Update M3U Playlist
 
 on:
   schedule:
-    # Chạy mỗi 6 giờ (có thể tùy chỉnh)
     - cron: '0 */6 * * *'
-  workflow_dispatch:  # Cho phép chạy thủ công
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -17,8 +16,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0          # Lấy toàn bộ lịch sử để tránh conflict
-          ref: main               # Đảm bảo checkout đúng nhánh
+          fetch-depth: 0
+          # Không chỉ định ref, để actions/checkout tự lấy nhánh mặc định
+          # Nếu vẫn lỗi, có thể thêm: ref: master
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -40,13 +40,28 @@ jobs:
 
       - name: Commit and push changes
         run: |
-          # Kiểm tra xem file output.m3u có thay đổi không
+          # Xác định tên nhánh hiện tại (main hoặc master)
+          BRANCH=$(git branch --show-current)
+          if [ -z "$BRANCH" ]; then
+            # Nếu không lấy được, thử các tên phổ biến
+            if git show-ref --verify --quiet refs/heads/main; then
+              BRANCH="main"
+            elif git show-ref --verify --quiet refs/heads/master; then
+              BRANCH="master"
+            else
+              echo "Could not determine branch name"
+              exit 1
+            fi
+          fi
+          echo "Current branch: $BRANCH"
+          
+          # Kiểm tra file thay đổi
           if git diff --quiet output.m3u; then
             echo "No changes to output.m3u"
             exit 0
           fi
+          
           git add output.m3u
           git commit -m "Auto-update playlist $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-          # Pull với rebase để tránh conflict
-          git pull --rebase origin main
-          git push origin main
+          git pull --rebase origin "$BRANCH"
+          git push origin "$BRANCH"
