@@ -18,7 +18,6 @@ struct PlaylistEntry {
     is_valid: bool,
     response_time: Option<Duration>,
     error: Option<String>,
-    // Stalker portal options
     vlc_user_agent: Option<String>,
     vlc_cookie: Option<String>,
     vlc_headers: Vec<(String, String)>,
@@ -97,7 +96,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("🚫 Filtered {} streams (adult/MP4/cinehub)", filtered_count);
     }
 
-    // Prepare list of (index, url, options) for validation
     let streams_to_validate: Vec<(usize, String, Option<String>, Option<String>, Vec<(String, String)>)> = filtered_entries
         .iter()
         .filter(|e| e.entry_type == EntryType::StreamUrl)
@@ -149,9 +147,9 @@ fn create_http_client() -> Client {
 fn parse_playlist_content(content: &str) -> Vec<PlaylistEntry> {
     let mut entries = Vec::new();
     let mut index = 0;
-    let mut pending_vlc_ua: Option<String> = None;
-    let mut pending_vlc_cookie: Option<String> = None;
-    let mut pending_vlc_headers: Vec<(String, String)> = Vec::new();
+    let mut pending_ua: Option<String> = None;
+    let mut pending_cookie: Option<String> = None;
+    let mut pending_headers: Vec<(String, String)> = Vec::new();
 
     for line in content.lines() {
         let line = line.trim();
@@ -161,41 +159,34 @@ fn parse_playlist_content(content: &str) -> Vec<PlaylistEntry> {
 
         match entry_type {
             EntryType::VlcOpt => {
-                // Parse #EXTVLCOPT: key=value or http-header=Key: Value
                 if let Some(rest) = line.strip_prefix("#EXTVLCOPT:") {
                     if rest.starts_with("http-user-agent=") {
-                        let ua = rest["http-user-agent=".len()..].to_string();
-                        pending_vlc_ua = Some(ua);
+                        pending_ua = Some(rest["http-user-agent=".len()..].to_string());
                     } else if rest.starts_with("http-cookie=") {
-                        let cookie = rest["http-cookie=".len()..].to_string();
-                        pending_vlc_cookie = Some(cookie);
+                        pending_cookie = Some(rest["http-cookie=".len()..].to_string());
                     } else if rest.starts_with("http-header=") {
                         let header_part = &rest["http-header=".len()..];
-                        if let Some(colon_pos) = header_part.find(':') {
-                            let key = header_part[..colon_pos].trim().to_string();
-                            let value = header_part[colon_pos+1..].trim().to_string();
-                            pending_vlc_headers.push((key, value));
+                        if let Some(colon) = header_part.find(':') {
+                            let key = header_part[..colon].trim().to_string();
+                            let val = header_part[colon+1..].trim().to_string();
+                            pending_headers.push((key, val));
                         }
                     }
                 }
                 entries.push(entry);
             }
             EntryType::StreamUrl => {
-                // Attach pending VLC options to this URL
-                entry.vlc_user_agent = pending_vlc_ua.take();
-                entry.vlc_cookie = pending_vlc_cookie.take();
-                entry.vlc_headers = pending_vlc_headers.drain(..).collect();
+                entry.vlc_user_agent = pending_ua.take();
+                entry.vlc_cookie = pending_cookie.take();
+                entry.vlc_headers = pending_headers.drain(..).collect();
                 entries.push(entry);
             }
             _ => {
-                // For non-VLC and non-URL, clear pending options? Usually options only apply to next URL.
-                // But we keep them until a URL appears. However, if we encounter a new #EXTINF or comment, reset? 
-                // Standard M3U: #EXTVLCOPT lines before a URL belong to that URL.
-                // After a URL, options should be cleared. For safety, we clear pending options when we see a new #EXTINF or header.
+                // Reset options khi gặp metadata hoặc header (theo chuẩn M3U)
                 if entry_type == EntryType::Metadata || entry_type == EntryType::Header {
-                    pending_vlc_ua = None;
-                    pending_vlc_cookie = None;
-                    pending_vlc_headers.clear();
+                    pending_ua = None;
+                    pending_cookie = None;
+                    pending_headers.clear();
                 }
                 entries.push(entry);
             }
@@ -224,7 +215,7 @@ fn classify_line(line: &str) -> EntryType {
 
 fn filter_unwanted_entries(entries: Vec<PlaylistEntry>) -> (Vec<PlaylistEntry>, usize) {
     let mut filtered = Vec::new();
-    let mut skip_next_url = false;
+    let mut skip_next = false;
     let mut filtered_count = 0;
     let mut i = 0;
 
@@ -242,17 +233,16 @@ fn filter_unwanted_entries(entries: Vec<PlaylistEntry>) -> (Vec<PlaylistEntry>, 
             }
             _ => false,
         };
-
         if should_filter {
-            if entry.entry_type == EntryType::Metadata { skip_next_url = true; }
+            if entry.entry_type == EntryType::Metadata { skip_next = true; }
             filtered_count += 1;
             i += 1;
-        } else if skip_next_url && entry.entry_type == EntryType::StreamUrl {
+        } else if skip_next && entry.entry_type == EntryType::StreamUrl {
             filtered_count += 1;
-            skip_next_url = false;
+            skip_next = false;
             i += 1;
         } else {
-            skip_next_url = false;
+            skip_next = false;
             filtered.push(entries[i].clone());
             i += 1;
         }
@@ -305,7 +295,6 @@ async fn validate_with_options(
     cookie: Option<String>,
     extra_headers: &[(String, String)],
 ) -> ValidationResult {
-    // HEAD request with custom headers
     let mut head_builder = client.head(url);
     if let Some(ua) = &user_agent {
         head_builder = head_builder.header(reqwest::header::USER_AGENT, ua);
@@ -320,9 +309,8 @@ async fn validate_with_options(
     match timeout(Duration::from_secs(REQUEST_TIMEOUT), head_builder.send()).await {
         Ok(Ok(resp)) => {
             let status = resp.status();
-            // Read body to detect hidden errors
-            let body_text = timeout(Duration::from_secs(3), resp.text()).await.ok().unwrap_or(Ok(String::new())).unwrap_or_default();
-            if let Some(err_msg) = extract_error_from_body(&body_text) {
+            let body = timeout(Duration::from_secs(3), resp.text()).await.ok().unwrap_or(Ok(String::new())).unwrap_or_default();
+            if let Some(err_msg) = extract_error_from_body(&body) {
                 return ValidationResult { is_valid: false, error: Some(err_msg) };
             }
             if status.is_success() {
@@ -332,10 +320,9 @@ async fn validate_with_options(
             }
         }
         Ok(Err(e)) => return ValidationResult { is_valid: false, error: Some(format!("Request error: {}", e)) },
-        Err(_) => {} // timeout, fallback to GET
+        Err(_) => {}
     }
 
-    // GET with Range
     let mut get_builder = client.get(url).header("Range", "bytes=0-1024");
     if let Some(ua) = user_agent {
         get_builder = get_builder.header(reqwest::header::USER_AGENT, ua);
@@ -350,13 +337,13 @@ async fn validate_with_options(
     match timeout(Duration::from_secs(REQUEST_TIMEOUT), get_builder.send()).await {
         Ok(Ok(resp)) => {
             let status = resp.status();
-            let body_text = timeout(Duration::from_secs(3), resp.text()).await.ok().unwrap_or(Ok(String::new())).unwrap_or_default();
-            if let Some(err_msg) = extract_error_from_body(&body_text) {
+            let body = timeout(Duration::from_secs(3), resp.text()).await.ok().unwrap_or(Ok(String::new())).unwrap_or_default();
+            if let Some(err_msg) = extract_error_from_body(&body) {
                 return ValidationResult { is_valid: false, error: Some(err_msg) };
             }
             if status.is_success() || status.as_u16() == 206 {
                 if url.contains(".m3u8") {
-                    if body_text.contains("#EXTM3U") || body_text.contains("#EXTINF") {
+                    if body.contains("#EXTM3U") || body.contains("#EXTINF") {
                         return ValidationResult { is_valid: true, error: None };
                     } else {
                         return ValidationResult { is_valid: false, error: Some("Invalid HLS playlist".to_string()) };
@@ -364,8 +351,8 @@ async fn validate_with_options(
                 }
                 return ValidationResult { is_valid: true, error: None };
             } else {
-                let err = if !body_text.is_empty() {
-                    extract_error_from_body(&body_text).unwrap_or_else(|| format!("HTTP {}", status))
+                let err = if !body.is_empty() {
+                    extract_error_from_body(&body).unwrap_or_else(|| format!("HTTP {}", status))
                 } else {
                     format!("HTTP {}", status)
                 };
@@ -461,7 +448,6 @@ fn write_cleaned_playlist(
                 if let Some(meta) = last_metadata.take() {
                     writeln!(writer, "{}", meta.content)?;
                 }
-                // Write any VLC options that were attached to this URL
                 if let Some(ua) = &entry.vlc_user_agent {
                     writeln!(writer, "#EXTVLCOPT:http-user-agent={}", ua)?;
                 }
@@ -474,9 +460,6 @@ fn write_cleaned_playlist(
                 writeln!(writer, "{}", entry.content)?;
             }
             EntryType::Comment | EntryType::Empty | EntryType::VlcOpt => {
-                // Preserve comments and VLC options only if they are not part of filtered stream
-                // But we already handle VLC options by attaching to URL. To avoid duplication,
-                // we skip writing raw VLC options because they are rewritten above.
                 if entry.entry_type != EntryType::VlcOpt {
                     writeln!(writer, "{}", entry.content)?;
                 }
@@ -484,7 +467,6 @@ fn write_cleaned_playlist(
             _ => {}
         }
     }
-
     writeln!(writer, "########################################")?;
     writeln!(writer, "#END-OF-PLAYLIST")?;
     writeln!(writer, "#CXT - Quality Streams Only - Order Preserved")?;
@@ -535,4 +517,4 @@ fn shorten_url(url: &str) -> String {
 struct ValidationResult {
     is_valid: bool,
     error: Option<String>,
-           }
+}
