@@ -1,0 +1,96 @@
+#EXTM3U
+#EXTINF:-1 tvg-id="" group-title="Giải Trí",AXN
+http://103.58.160.157:8278/720-AXN/playlist.m3u8
+#EXTINF:-1 tvg-id="" group-title="Giải Trí",HBO
+http://103.58.160.157:8278/720-HBO/playlist.m3u8
+#EXTINF:-1 tvg-id="" group-title="Giải Trí",HBO HITS
+http://103.58.160.157:8278/720-HBOHITS/playlist.m3u8
+#EXTINF:-1 tvg-id="" group-title="Giải Trí",Cinemax
+http://103.58.160.157:8278/720-CINEMAX/playlist.m3u8
+#EXTINF:-1 tvg-id="" group-title="Giải Trí",Discovery Asia
+https://cdn4.skygo.mn/live/disk1/Discovery_Asia/HLSv3-FTA/Discovery_Asia.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao" tvg-logo="https://media.chuoichientv.com/media/uploads/20250623_125552_15f20ce5.png",02h00 ngày 16/05 Aston Villa vs Liverpool (Chuối Chiên) FHD1
+#EXTVLCOPT:http-user-agent=Mozilla AppleWebKit Chrome Safari
+#EXTVLCOPT:http-referrer=https://playerlive.xyz/
+https://gckc0525.edgemaxcdn.org/live/chuoitayhd/playlist.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao" tvg-logo="https://media.chuoichientv.com/media/uploads/20250623_125552_15f20ce5.png",02h00 ngày 16/05 Aston Villa vs Liverpool (Chuối Chiên) FHD1
+#EXTVLCOPT:http-user-agent=Mozilla AppleWebKit Chrome Safari
+#EXTVLCOPT:http-referrer=https://playerlive.xyz/
+https://gckc0525.edgemaxcdn.org/live/anhquathd/playlist.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao" tvg-logo="https://media.chuoichientv.com/media/uploads/20250623_125552_15f20ce5.png",02h00 ngày 16/05 Aston Villa vs Liverpool (Chuối Chiên) FHD2
+#EXTVLCOPT:http-user-agent=Mozilla AppleWebKit Chrome Safari
+#EXTVLCOPT:http-referrer=https://playerlive.xyz/
+https://gckc0525.edgemaxcdn.org/live/anhquathd.flv
+#EXTINF:-1 tvg-id="" group-title="Thể Thao" tvg-logo="https://media.chuoichientv.com/media/uploads/20250623_125552_15f20ce5.png",02h00 ngày 16/05 Aston Villa vs Liverpool (Chuối Chiên) FHD2
+#EXTVLCOPT:http-user-agent=Mozilla AppleWebKit Chrome Safari
+#EXTVLCOPT:http-referrer=https://playerlive.xyz/
+https://gckc0525.edgemaxcdn.org/live/chuoitayhd.flv
+#EXTINF:-1 tvg-id="" group-title="Thể Thao" tvg-logo="https://media.chuoichientv.com/media/uploads/20250623_125552_15f20ce5.png",02h00 ngày 16/05 Aston Villa vs Liverpool (Chuối Chiên) HD1
+#EXTVLCOPT:http-user-agent=Mozilla AppleWebKit Chrome Safari
+#EXTVLCOPT:http-referrer=https://playerlive.xyz/
+https://gckc0525.edgemaxcdn.org/live/chuoitay/playlist.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao" tvg-logo="https://media.chuoichientv.com/media/uploads/20250623_125552_15f20ce5.png",02h00 ngày 16/05 Aston Villa vs Liverpool (Chuối Chiên) HD1
+#EXTVLCOPT:http-user-agent=Mozilla AppleWebKit Chrome Safari
+#EXTVLCOPT:http-referrer=https://playerlive.xyz/
+https://gckc0525.edgemaxcdn.org/live/anhquat/playlist.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao" tvg-logo="https://media.chuoichientv.com/media/uploads/20250623_125552_15f20ce5.png",02h00 ngày 16/05 Aston Villa vs Liverpool (Chuối Chiên) HD2
+#EXTVLCOPT:http-user-agent=Mozilla AppleWebKit Chrome Safari
+#EXTVLCOPT:http-referrer=https://playerlive.xyz/
+https://gckc0525.edgemaxcdn.org/live/anhquat.flv
+#EXTINF:-1 tvg-id="" group-title="Thể Thao" tvg-logo="https://media.chuoichientv.com/media/uploads/20250623_125552_15f20ce5.png",02h00 ngày 16/05 Aston Villa vs Liverpool (Chuối Chiên) HD2
+#EXTVLCOPT:http-user-agent=Mozilla AppleWebKit Chrome Safari
+#EXTVLCOPT:http-referrer=https://playerlive.xyz/
+https://gckc0525.edgemaxcdn.org/live/chuoitay.flv
+#EXTINF:-1 tvg-id="" group-title="Thể Thao" tvg-logo="https://img.colatv88xd.cc/football/team/89cdadf6cf1eb6f8d2507de1e01f806c.png!w80",22h30 03/05 Borussia Mönchengladbach vs Borussia Dortmund
+#EXTVLCOPT:http-user-agent=Mozilla AppleWebKit Chrome Safari
+https://live5.msrktz.app/live/79665343.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",DAZN Ringside
+https://aegis-cloudfront-1.tubi.video/bfad29e2-5bee-44f3-8256-127324e8b106/playlist.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",Hub Premier 1
+https://cdn-1.ttvb.eu.org/api/Hub-Premier-1/index.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",Hub Premier 2
+https://cdn-1.ttvb.eu.org/api/Hub-Premier-2/index.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",Hub Premier 3
+https://cdn-1.ttvb.eu.org/api/Hub-Premier-3/index.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",Hub Premier 4
+https://cdn-1.ttvb.eu.org/api/Hub-Premier-4/index.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",Hub Premier 5
+https://cdn-1.ttvb.eu.org/api/Hub-Premier-5/index.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",Hub Premier 6
+https://cdn-1.ttvb.eu.org/api/Hub-Premier-6/index.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",Hub Premier 7
+https://cdn-1.ttvb.eu.org/api/Hub-Premier-7/index.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",Hub Premier 8
+https://cdn-1.ttvb.eu.org/api/Hub-Premier-8/index.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",Premier Sports 1
+http://nkhwvlfz.ottclub.xyz/iptv/MHG766HMYBABXR/6555/index.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",Premier Sports 2
+http://nkhwvlfz.ottclub.xyz/iptv/MHG766HMYBABXR/2069/index.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",Setanta Sport 1
+http://cdntv.online/low/9mlxywika2/1021.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",Setanta Sport 2
+http://cdntv.online/low/9mlxywika2/1022.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",Setanta Sports
+http://sewv654wfcsdwfi87fwvgbngh.siauliairsavlt.pw/iptv/HBX28K5SXCR6EH/6541/index.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",Setanta Sports
+http://sewv654wfcsdwfi87fwvgbngh.siauliairsavlt.pw/iptv/HBX28K5SXCR6EH/15183/index.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",Setanta Sports
+http://sewv654wfcsdwfi87fwvgbngh.siauliairsavlt.pw/iptv/HBX28K5SXCR6EH/6543/index.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",Sky Sports Premier League
+https://cdn-2.ttvb.eu.org/api/Sky-Sports-EPL/index.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",TNT Sports 1
+http://sewv654wfcsdwfi87fwvgbngh.siauliairsavlt.pw/iptv/HBX28K5SXCR6EH/6566/index.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",TNT Sports 1
+https://cdn-1.ttvb.eu.org/api/TNT-Sports-1/index.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",TNT Sports 2
+http://sewv654wfcsdwfi87fwvgbngh.siauliairsavlt.pw/iptv/HBX28K5SXCR6EH/2506/index.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",TNT Sports 2
+https://cdn-1.ttvb.eu.org/api/TNT-Sports-2/index.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",TNT Sports 3
+https://cdn-1.ttvb.eu.org/api/TNT-Sports-3/index.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",TNT Sports 3
+http://sewv654wfcsdwfi87fwvgbngh.siauliairsavlt.pw/iptv/HBX28K5SXCR6EH/6564/index.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",TNT Sports 4
+http://sewv654wfcsdwfi87fwvgbngh.siauliairsavlt.pw/iptv/HBX28K5SXCR6EH/19054/index.m3u8
+#EXTINF:-1 tvg-id="" group-title="Thể Thao",TNT Sports 4
+https://cdn-1.ttvb.eu.org/api/TNT-Sports-4/index.m3u8
