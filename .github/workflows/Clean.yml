@@ -1,5 +1,7 @@
 name: Clean M3U Playlist
 on:
+  schedule:
+    - cron: '0 */5 * * *'
   push:
     paths:
       - 'output.m3u'
