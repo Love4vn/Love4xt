@@ -45,7 +45,6 @@ jobs:
           git config user.name "CXT Cleaner Bot"
           git config user.email "cxt-bot@users.noreply.github.com"
           
-          # Lấy tên branch hiện tại
           BRANCH=$(git branch --show-current)
           echo "Current branch: $BRANCH"
           
@@ -57,3 +56,5 @@ jobs:
           else
             echo "No changes to commit."
           fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
