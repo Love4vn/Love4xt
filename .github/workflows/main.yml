@@ -17,8 +17,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          # Không chỉ định ref, để actions/checkout tự lấy nhánh mặc định
-          # Nếu vẫn lỗi, có thể thêm: ref: master
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -26,12 +24,13 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests
+        run: pip install requests
 
       - name: Run M3U_list.py
         run: python M3U_list.py
+
+      - name: List files after script
+        run: ls -la
 
       - name: Configure git
         run: |
@@ -40,10 +39,8 @@ jobs:
 
       - name: Commit and push changes
         run: |
-          # Xác định tên nhánh hiện tại (main hoặc master)
           BRANCH=$(git branch --show-current)
           if [ -z "$BRANCH" ]; then
-            # Nếu không lấy được, thử các tên phổ biến
             if git show-ref --verify --quiet refs/heads/main; then
               BRANCH="main"
             elif git show-ref --verify --quiet refs/heads/master; then
@@ -54,14 +51,17 @@ jobs:
             fi
           fi
           echo "Current branch: $BRANCH"
-          
-          # Kiểm tra file thay đổi
-          if git diff --quiet output.m3u; then
-            echo "No changes to output.m3u"
+          # Kiểm tra file output.m3u có tồn tại không
+          if [ ! -f output.m3u ]; then
+            echo "File output.m3u not found!"
+            exit 1
+          fi
+          git add output.m3u
+          # Kiểm tra xem có thay đổi không
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
             exit 0
           fi
-          
-          git add output.m3u
           git commit -m "Auto-update playlist $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
           git pull --rebase origin "$BRANCH"
           git push origin "$BRANCH"
