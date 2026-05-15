@@ -1,0 +1,52 @@
+name: Update M3U Playlist
+
+on:
+  schedule:
+    # Chạy mỗi 6 giờ (có thể tùy chỉnh)
+    - cron: '0 */6 * * *'
+  workflow_dispatch:  # Cho phép chạy thủ công
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # Lấy toàn bộ lịch sử để tránh conflict
+          ref: main               # Đảm bảo checkout đúng nhánh
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Run M3U_list.py
+        run: python M3U_list.py
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit and push changes
+        run: |
+          # Kiểm tra xem file output.m3u có thay đổi không
+          if git diff --quiet output.m3u; then
+            echo "No changes to output.m3u"
+            exit 0
+          fi
+          git add output.m3u
+          git commit -m "Auto-update playlist $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          # Pull với rebase để tránh conflict
+          git pull --rebase origin main
+          git push origin main
