@@ -162,8 +162,8 @@ https://raw.githubusercontent.com/Muji777/Exp/refs/heads/main/Sports.m3u
 https://raw.githubusercontent.com/hoiquanclick/hoiquan/refs/heads/main/vip.m3u
 https://raw.githubusercontent.com/evafourbasri-afk/streamedsu-autoscraper/refs/heads/main/Branch/nhadai_2.m3u
 https://raw.githubusercontent.com/evafourbasri-afk/streamedsu-autoscraper/refs/heads/main/Branch/all.m3u
-
-
+https://raw.githubusercontent.com/BuddyChewChew/plex/b4c8f7c81bb6d0b641389005ce89de765261a582/playlists/plex_ca.m3u
+https://raw.githubusercontent.com/BuddyChewChew/plex/b4c8f7c81bb6d0b641389005ce89de765261a582/playlists/plex_us.m3u
 
 
 
