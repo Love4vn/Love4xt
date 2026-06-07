@@ -164,6 +164,6 @@ https://raw.githubusercontent.com/evafourbasri-afk/streamedsu-autoscraper/refs/h
 https://raw.githubusercontent.com/evafourbasri-afk/streamedsu-autoscraper/refs/heads/main/Branch/all.m3u
 https://raw.githubusercontent.com/BuddyChewChew/plex/b4c8f7c81bb6d0b641389005ce89de765261a582/playlists/plex_ca.m3u
 https://raw.githubusercontent.com/BuddyChewChew/plex/b4c8f7c81bb6d0b641389005ce89de765261a582/playlists/plex_us.m3u
-
+https://raw.githubusercontent.com/pk0979/m3u-live/refs/heads/main/all.m3u
 
 
