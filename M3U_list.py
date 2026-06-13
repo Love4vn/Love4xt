@@ -19,8 +19,8 @@ VTV_CHANNELS = [
 # Danh sách kênh Giải Trí (chuẩn)
 ENTERTAINMENT_CHANNELS = [
     "AXN", "HBO", "HBO HITS", "HBO FAMILY", "HBO SIGNATURE", "CINEMAX", "Ninja Warrior",
-    "CINEMA WORLD", "DREAMWORKS", "BOX MOVIE 1", "HOLLYWOOD CLASSICS", "Wipeout Xtra",
-    "BOX HITS", "WARNER TV", "CINEMAWORLD", "FOX FAMILY MOVIES", "FailArmy", "The Pet Collective", 
+    "CINEMA WORLD", "DREAMWORKS", "BOX MOVIE 1", "hollywood classic", "Wipeout Xtra",
+    "box hits", "box movie 1", "gags", "WARNER TV", "CINEMAWORLD", "FOX FAMILY MOVIES", "FailArmy", "The Pet Collective", 
     "Love Pets", "Mythbusters", "River Monsters", "INWILD", "just for laughs", "Adventure Earth",
     "DISCOVERY CHANNEL", "DISCOVERY ASIA", "NATIONAL GEOGRAPHIC", "Gardeners' World",
     "ANIMAL PLANET", "MAN", "WOMAN", "FASHION TV", "OUTDOOR CHANNEL", "always funny videos", 
