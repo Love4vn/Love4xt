@@ -140,6 +140,7 @@ fn create_http_client() -> Client {
         .tcp_keepalive(Duration::from_secs(10))
         .pool_max_idle_per_host(50)
         .user_agent("CXT-Cleaner/2.0")
+        .cookie_store(true)   // bật lưu cookie
         .build()
         .expect("Failed to create HTTP client")
 }
@@ -295,11 +296,15 @@ async fn validate_with_options(
     cookie: Option<String>,
     extra_headers: &[(String, String)],
 ) -> ValidationResult {
-    // Helper to build request with default headers
+    // Helper build request with more headers (simulate browser)
     let build_request = |builder: reqwest::RequestBuilder| {
         let mut builder = builder
-            .header(reqwest::header::ACCEPT, "video/*, application/vnd.apple.mpegurl, */*")
-            .header(reqwest::header::ACCEPT_LANGUAGE, "en-US,en;q=0.9,vi;q=0.8");
+            .header(reqwest::header::ACCEPT, "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
+            .header(reqwest::header::ACCEPT_LANGUAGE, "en-US,en;q=0.9,vi;q=0.8")
+            .header("Accept-Encoding", "gzip, deflate, br")
+            .header("Connection", "keep-alive")
+            .header("Cache-Control", "no-cache")
+            .header("Upgrade-Insecure-Requests", "1");
         if let Some(ua) = &user_agent {
             builder = builder.header(reqwest::header::USER_AGENT, ua);
         } else {
@@ -312,14 +317,13 @@ async fn validate_with_options(
             builder = builder.header(reqwest::header::REFERER, domain);
             builder = builder.header("Origin", domain);
         }
-        // Add extra headers (can override defaults)
         for (k, v) in extra_headers {
             builder = builder.header(k, v);
         }
         builder
     };
 
-    // Try HEAD
+    // HEAD request
     let head_result = timeout(Duration::from_secs(REQUEST_TIMEOUT), build_request(client.head(url)).send()).await;
     match head_result {
         Ok(Ok(resp)) => {
@@ -331,12 +335,11 @@ async fn validate_with_options(
             if status.is_success() {
                 return ValidationResult { is_valid: true, error: None };
             }
-            // fall through to GET
         }
         _ => {}
     }
 
-    // Fallback GET with Range
+    // GET with Range
     let get_result = timeout(Duration::from_secs(REQUEST_TIMEOUT), build_request(client.get(url).header("Range", "bytes=0-1024")).send()).await;
     match get_result {
         Ok(Ok(resp)) => {
