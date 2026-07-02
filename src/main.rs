@@ -295,21 +295,32 @@ async fn validate_with_options(
     cookie: Option<String>,
     extra_headers: &[(String, String)],
 ) -> ValidationResult {
-    // Build HEAD request with custom headers
-    let mut head_builder = client.head(url);
-    if let Some(ua) = &user_agent {
-        head_builder = head_builder.header(reqwest::header::USER_AGENT, ua);
-    }
-    if let Some(c) = &cookie {
-        head_builder = head_builder.header(reqwest::header::COOKIE, c);
-    }
-    for (k, v) in extra_headers {
-        head_builder = head_builder.header(k, v);
-    }
+    // Helper to build request with default headers
+    let build_request = |builder: reqwest::RequestBuilder| {
+        let mut builder = builder
+            .header(reqwest::header::ACCEPT, "video/*, application/vnd.apple.mpegurl, */*")
+            .header(reqwest::header::ACCEPT_LANGUAGE, "en-US,en;q=0.9,vi;q=0.8");
+        if let Some(ua) = &user_agent {
+            builder = builder.header(reqwest::header::USER_AGENT, ua);
+        } else {
+            builder = builder.header(reqwest::header::USER_AGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+        }
+        if let Some(c) = &cookie {
+            builder = builder.header(reqwest::header::COOKIE, c);
+        }
+        if let Some(ref domain) = extract_domain(url) {
+            builder = builder.header(reqwest::header::REFERER, domain);
+            builder = builder.header("Origin", domain);
+        }
+        // Add extra headers (can override defaults)
+        for (k, v) in extra_headers {
+            builder = builder.header(k, v);
+        }
+        builder
+    };
 
-    // Try HEAD first
-    let head_result = timeout(Duration::from_secs(REQUEST_TIMEOUT), head_builder.send()).await;
-
+    // Try HEAD
+    let head_result = timeout(Duration::from_secs(REQUEST_TIMEOUT), build_request(client.head(url)).send()).await;
     match head_result {
         Ok(Ok(resp)) => {
             let status = resp.status();
@@ -320,29 +331,14 @@ async fn validate_with_options(
             if status.is_success() {
                 return ValidationResult { is_valid: true, error: None };
             }
-            // else fallback to GET
+            // fall through to GET
         }
-        Ok(Err(_e)) => {
-            // fallback to GET
-        }
-        Err(_) => {
-            // timeout, fallback to GET
-        }
+        _ => {}
     }
 
-    // Fallback to GET with Range
-    let mut get_builder = client.get(url).header("Range", "bytes=0-1024");
-    if let Some(ua) = user_agent {
-        get_builder = get_builder.header(reqwest::header::USER_AGENT, ua);
-    }
-    if let Some(c) = cookie {
-        get_builder = get_builder.header(reqwest::header::COOKIE, c);
-    }
-    for (k, v) in extra_headers {
-        get_builder = get_builder.header(k, v);
-    }
-
-    match timeout(Duration::from_secs(REQUEST_TIMEOUT), get_builder.send()).await {
+    // Fallback GET with Range
+    let get_result = timeout(Duration::from_secs(REQUEST_TIMEOUT), build_request(client.get(url).header("Range", "bytes=0-1024")).send()).await;
+    match get_result {
         Ok(Ok(resp)) => {
             let status = resp.status();
             let body_text = timeout(Duration::from_secs(3), resp.text()).await.ok().unwrap_or(Ok(String::new())).unwrap_or_default();
@@ -393,6 +389,21 @@ fn extract_error_from_body(body: &str) -> Option<String> {
             .map(|s| s.trim().to_string())
             .unwrap_or_else(|| "Access denied/Invalid key".to_string());
         Some(snippet)
+    } else {
+        None
+    }
+}
+
+fn extract_domain(url: &str) -> Option<String> {
+    if let Some(start) = url.find("://") {
+        let start = start + 3;
+        let end = url[start..].find('/').unwrap_or(url.len() - start);
+        let domain = &url[start..start+end];
+        if let Some(scheme) = url.get(..start-3) {
+            Some(format!("{}://{}", scheme, domain))
+        } else {
+            Some(format!("https://{}", domain))
+        }
     } else {
         None
     }
