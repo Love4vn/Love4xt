@@ -18,7 +18,6 @@ struct PlaylistEntry {
     is_valid: bool,
     response_time: Option<Duration>,
     error: Option<String>,
-    // Stalker portal options
     vlc_user_agent: Option<String>,
     vlc_cookie: Option<String>,
     vlc_headers: Vec<(String, String)>,
@@ -97,7 +96,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("🚫 Filtered {} streams (adult/MP4/cinehub)", filtered_count);
     }
 
-    // Prepare list of (index, url, options) for validation
     let streams_to_validate: Vec<(usize, String, Option<String>, Option<String>, Vec<(String, String)>)> = filtered_entries
         .iter()
         .filter(|e| e.entry_type == EntryType::StreamUrl)
@@ -184,7 +182,6 @@ fn parse_playlist_content(content: &str) -> Vec<PlaylistEntry> {
                 entries.push(entry);
             }
             _ => {
-                // Reset pending options when encountering a new metadata or header
                 if entry_type == EntryType::Metadata || entry_type == EntryType::Header {
                     pending_ua = None;
                     pending_cookie = None;
@@ -316,23 +313,20 @@ async fn validate_with_options(
     match head_result {
         Ok(Ok(resp)) => {
             let status = resp.status();
-            // Read body to detect hidden errors (e.g., HTML error page with 200)
             let body_text = timeout(Duration::from_secs(3), resp.text()).await.ok().unwrap_or(Ok(String::new())).unwrap_or_default();
             if let Some(err_msg) = extract_error_from_body(&body_text) {
                 return ValidationResult { is_valid: false, error: Some(err_msg) };
             }
             if status.is_success() {
                 return ValidationResult { is_valid: true, error: None };
-            } else {
-                // HEAD returned error, fallback to GET with Range
-                // Do not return yet, try GET
             }
+            // else fallback to GET
         }
-        Ok(Err(e)) => {
-            // Request error, fallback to GET
+        Ok(Err(_e)) => {
+            // fallback to GET
         }
         Err(_) => {
-            // Timeout, fallback to GET
+            // timeout, fallback to GET
         }
     }
 
@@ -462,7 +456,6 @@ fn write_cleaned_playlist(
                 if let Some(meta) = last_metadata.take() {
                     writeln!(writer, "{}", meta.content)?;
                 }
-                // Write VLC options that were attached to this URL
                 if let Some(ua) = &entry.vlc_user_agent {
                     writeln!(writer, "#EXTVLCOPT:http-user-agent={}", ua)?;
                 }
@@ -475,7 +468,6 @@ fn write_cleaned_playlist(
                 writeln!(writer, "{}", entry.content)?;
             }
             EntryType::Comment | EntryType::Empty | EntryType::VlcOpt => {
-                // Skip raw VLC options because they are rewritten above
                 if entry.entry_type != EntryType::VlcOpt {
                     writeln!(writer, "{}", entry.content)?;
                 }
