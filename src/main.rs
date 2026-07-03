@@ -140,7 +140,6 @@ fn create_http_client() -> Client {
         .tcp_keepalive(Duration::from_secs(10))
         .pool_max_idle_per_host(50)
         .user_agent("CXT-Cleaner/2.0")
-        .cookie_store(true)   // lưu cookie
         .build()
         .expect("Failed to create HTTP client")
 }
@@ -296,40 +295,21 @@ async fn validate_with_options(
     cookie: Option<String>,
     extra_headers: &[(String, String)],
 ) -> ValidationResult {
-    // Helper build request with full browser headers
-    let build_request = |builder: reqwest::RequestBuilder| {
-        let mut builder = builder
-            .header(reqwest::header::ACCEPT, "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
-            .header(reqwest::header::ACCEPT_LANGUAGE, "en-US,en;q=0.9,vi;q=0.8")
-            .header("Accept-Encoding", "gzip, deflate, br")
-            .header("Connection", "keep-alive")
-            .header("Cache-Control", "no-cache")
-            .header("Pragma", "no-cache")
-            .header("Upgrade-Insecure-Requests", "1")
-            .header("Sec-Fetch-Site", "none")
-            .header("Sec-Fetch-Mode", "navigate")
-            .header("Sec-Fetch-User", "?1")
-            .header("Sec-Fetch-Dest", "document");
-        if let Some(ua) = &user_agent {
-            builder = builder.header(reqwest::header::USER_AGENT, ua);
-        } else {
-            builder = builder.header(reqwest::header::USER_AGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
-        }
-        if let Some(c) = &cookie {
-            builder = builder.header(reqwest::header::COOKIE, c);
-        }
-        if let Some(ref domain) = extract_domain(url) {
-            builder = builder.header(reqwest::header::REFERER, domain);
-            builder = builder.header("Origin", domain);
-        }
-        for (k, v) in extra_headers {
-            builder = builder.header(k, v);
-        }
-        builder
-    };
+    // Build HEAD request with custom headers
+    let mut head_builder = client.head(url);
+    if let Some(ua) = &user_agent {
+        head_builder = head_builder.header(reqwest::header::USER_AGENT, ua);
+    }
+    if let Some(c) = &cookie {
+        head_builder = head_builder.header(reqwest::header::COOKIE, c);
+    }
+    for (k, v) in extra_headers {
+        head_builder = head_builder.header(k, v);
+    }
 
-    // HEAD request
-    let head_result = timeout(Duration::from_secs(REQUEST_TIMEOUT), build_request(client.head(url)).send()).await;
+    // Try HEAD first
+    let head_result = timeout(Duration::from_secs(REQUEST_TIMEOUT), head_builder.send()).await;
+
     match head_result {
         Ok(Ok(resp)) => {
             let status = resp.status();
@@ -340,13 +320,29 @@ async fn validate_with_options(
             if status.is_success() {
                 return ValidationResult { is_valid: true, error: None };
             }
+            // else fallback to GET
         }
-        _ => {}
+        Ok(Err(_e)) => {
+            // fallback to GET
+        }
+        Err(_) => {
+            // timeout, fallback to GET
+        }
     }
 
-    // GET with Range
-    let get_result = timeout(Duration::from_secs(REQUEST_TIMEOUT), build_request(client.get(url).header("Range", "bytes=0-1024")).send()).await;
-    match get_result {
+    // Fallback to GET with Range
+    let mut get_builder = client.get(url).header("Range", "bytes=0-1024");
+    if let Some(ua) = user_agent {
+        get_builder = get_builder.header(reqwest::header::USER_AGENT, ua);
+    }
+    if let Some(c) = cookie {
+        get_builder = get_builder.header(reqwest::header::COOKIE, c);
+    }
+    for (k, v) in extra_headers {
+        get_builder = get_builder.header(k, v);
+    }
+
+    match timeout(Duration::from_secs(REQUEST_TIMEOUT), get_builder.send()).await {
         Ok(Ok(resp)) => {
             let status = resp.status();
             let body_text = timeout(Duration::from_secs(3), resp.text()).await.ok().unwrap_or(Ok(String::new())).unwrap_or_default();
@@ -397,21 +393,6 @@ fn extract_error_from_body(body: &str) -> Option<String> {
             .map(|s| s.trim().to_string())
             .unwrap_or_else(|| "Access denied/Invalid key".to_string());
         Some(snippet)
-    } else {
-        None
-    }
-}
-
-fn extract_domain(url: &str) -> Option<String> {
-    if let Some(start) = url.find("://") {
-        let start = start + 3;
-        let end = url[start..].find('/').unwrap_or(url.len() - start);
-        let domain = &url[start..start+end];
-        if let Some(scheme) = url.get(..start-3) {
-            Some(format!("{}://{}", scheme, domain))
-        } else {
-            Some(format!("https://{}", domain))
-        }
     } else {
         None
     }
