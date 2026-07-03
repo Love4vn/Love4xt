@@ -140,7 +140,7 @@ fn create_http_client() -> Client {
         .tcp_keepalive(Duration::from_secs(10))
         .pool_max_idle_per_host(50)
         .user_agent("CXT-Cleaner/2.0")
-        // cookie jar không dùng trong reqwest 0.11, sẽ gửi cookie qua header thủ công
+        .cookie_store(true)   // lưu cookie
         .build()
         .expect("Failed to create HTTP client")
 }
@@ -296,6 +296,7 @@ async fn validate_with_options(
     cookie: Option<String>,
     extra_headers: &[(String, String)],
 ) -> ValidationResult {
+    // Helper build request with full browser headers
     let build_request = |builder: reqwest::RequestBuilder| {
         let mut builder = builder
             .header(reqwest::header::ACCEPT, "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
@@ -303,7 +304,12 @@ async fn validate_with_options(
             .header("Accept-Encoding", "gzip, deflate, br")
             .header("Connection", "keep-alive")
             .header("Cache-Control", "no-cache")
-            .header("Upgrade-Insecure-Requests", "1");
+            .header("Pragma", "no-cache")
+            .header("Upgrade-Insecure-Requests", "1")
+            .header("Sec-Fetch-Site", "none")
+            .header("Sec-Fetch-Mode", "navigate")
+            .header("Sec-Fetch-User", "?1")
+            .header("Sec-Fetch-Dest", "document");
         if let Some(ua) = &user_agent {
             builder = builder.header(reqwest::header::USER_AGENT, ua);
         } else {
@@ -322,7 +328,7 @@ async fn validate_with_options(
         builder
     };
 
-    // HEAD
+    // HEAD request
     let head_result = timeout(Duration::from_secs(REQUEST_TIMEOUT), build_request(client.head(url)).send()).await;
     match head_result {
         Ok(Ok(resp)) => {
