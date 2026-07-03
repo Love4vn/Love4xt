@@ -140,7 +140,7 @@ fn create_http_client() -> Client {
         .tcp_keepalive(Duration::from_secs(10))
         .pool_max_idle_per_host(50)
         .user_agent("CXT-Cleaner/2.0")
-        .cookie_store(true)   // bật lưu cookie
+        // cookie jar không dùng trong reqwest 0.11, sẽ gửi cookie qua header thủ công
         .build()
         .expect("Failed to create HTTP client")
 }
@@ -296,7 +296,6 @@ async fn validate_with_options(
     cookie: Option<String>,
     extra_headers: &[(String, String)],
 ) -> ValidationResult {
-    // Helper build request with more headers (simulate browser)
     let build_request = |builder: reqwest::RequestBuilder| {
         let mut builder = builder
             .header(reqwest::header::ACCEPT, "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
@@ -323,7 +322,7 @@ async fn validate_with_options(
         builder
     };
 
-    // HEAD request
+    // HEAD
     let head_result = timeout(Duration::from_secs(REQUEST_TIMEOUT), build_request(client.head(url)).send()).await;
     match head_result {
         Ok(Ok(resp)) => {
