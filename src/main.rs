@@ -149,10 +149,10 @@ fn is_whitelisted_url(url: &str) -> bool {
     let patterns = [
         "HaNoiIPTV.short.gy",
         "toiyeuvietnam.dpdns.org",
-        "live.fptplay53.net",
+        "live.fptplay53.net/live/media/vtv1",
         "vtvgolive-vtv.vtvdigital.vn",
         "sgchill.duckdns.org",
-        "pk79.io.vn",
+        "pk79.io.vn/vieon",
     ];
     patterns.iter().any(|p| url.contains(p))
 }
