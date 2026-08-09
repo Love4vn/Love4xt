@@ -166,4 +166,4 @@ https://raw.githubusercontent.com/BuddyChewChew/plex/b4c8f7c81bb6d0b641389005ce8
 https://raw.githubusercontent.com/BuddyChewChew/plex/b4c8f7c81bb6d0b641389005ce89de765261a582/playlists/plex_us.m3u
 https://raw.githubusercontent.com/pk0979/m3u-live/refs/heads/main/all.m3u
 https://raw.githubusercontent.com/gamerepublictv/iptv-live/refs/heads/main/playlist.php
-
+https://raw.githubusercontent.com/hoiquanclick/hoiquan/refs/heads/main/free.m3u
