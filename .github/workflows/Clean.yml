@@ -1,13 +1,18 @@
 name: Clean M3U Playlist
 
 on:
-  schedule:
-    - cron: '15 */6 * * *'
+  #schedule:
+  #  - cron: '15 */6 * * *'
   push:
     paths:
       - 'output.m3u'
       - '.github/workflows/clean.yml'
   workflow_dispatch:
+  workflow_run:
+    workflows:
+      - "Update M3U Playlist"       # thay đổi theo tên thực tế
+    types:
+      - completed
 # Đảm bảo chỉ 1 workflow chạy tại 1 thời điểm
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
